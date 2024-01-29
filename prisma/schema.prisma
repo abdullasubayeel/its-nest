@@ -11,16 +11,20 @@ datasource db {
 }
 
 model User {
-  id               Int        @id @default(autoincrement())
-  username         String     @unique
+  id               Int       @id @default(autoincrement())
+  username         String    @unique
   password         String
   fullName         String?
   email            String?
   roles            Roles
-  projectsAssigned String[]
   refreshToken     String?
-  developer        Developer?
-  Manager          Manager?
+  managerId        Int?
+  projectsAssigned String[]
+  projects         Project[]
+  reporterDev      Ticket[]  @relation("assigneeDeveloper")
+  assignedDev      Ticket[]  @relation("reportingDeveloper")
+
+  Ticket Ticket[]
 }
 
 enum Roles {
@@ -29,56 +33,28 @@ enum Roles {
   ADMIN
 }
 
-model Manager {
-  id           Int         @id @default(autoincrement())
-  user         User        @relation(fields: [userId], references: [id])
-  userId       Int         @unique
-  fullName     String
-  username     String
-  email        String
-  refreshToken String
-  projects     Project[]
-  developers   Developer[]
-}
-
-model Developer {
-  id           Int     @id @default(autoincrement())
-  user         User    @relation(fields: [userId], references: [id])
-  userId       Int     @unique
-  fullName     String
-  username     String
-  manager      Manager @relation(fields: [managerId], references: [id])
-  managerId    Int     @unique
-  email        String
-  refreshToken String
-
-  developerRoleId  Int
-  projectsAssigned Project[]
-  assignedTickets  Ticket[]  @relation("assigneeDeveloper")
-  reportedTickets  Ticket[]  @relation("reportingDeveloper")
-}
-
 model Project {
-  id          Int         @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   title       String
   description String
-  manager     Manager     @relation(fields: [managerId], references: [id])
-  managerId   Int
   tickets     Ticket[]
-  developers  Developer[]
+  User        User?    @relation(fields: [managerId], references: [id])
+  managerId   Int?
 }
 
 model Ticket {
-  id                 Int       @id @default(autoincrement())
+  id                 Int     @id @default(autoincrement())
   title              String
   priority           String
-  project            Project   @relation(fields: [projectId], references: [id])
+  project            Project @relation(fields: [projectId], references: [id])
   projectId          Int
   description        String
   status             String
-  assigneeDeveloper  Developer @relation("assigneeDeveloper", fields: [assignee], references: [id])
+  assigneeDeveloper  User    @relation("assigneeDeveloper", fields: [assignee], references: [id])
   assignee           Int
-  reportingDeveloper Developer @relation("reportingDeveloper", fields: [reporter], references: [id])
+  reportingDeveloper User    @relation("reportingDeveloper", fields: [reporter], references: [id])
   reporter           Int
   issueType          String
+  User               User?   @relation(fields: [userId], references: [id])
+  userId             Int?
 }

@@ -1,11 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { CreateManagerDto } from './dto/create-manager.dto';
 import { UpdateManagerDto } from './dto/update-manager.dto';
+import { Request } from 'express';
+import { Prisma } from '@prisma/client';
+import { DatabaseService } from 'src/database/database.service';
 
 @Injectable()
 export class ManagerService {
-  create(createManagerDto: CreateManagerDto) {
-    return 'This action adds a new manager';
+  constructor(private readonly databaseService: DatabaseService) {}
+
+  async create(data: Prisma.ManagerCreateInput) {
+    const manager = await this.databaseService.manager.create({ data });
+    return manager;
   }
 
   findAll() {

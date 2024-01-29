@@ -9,7 +9,6 @@ CREATE TABLE "User" (
     "fullName" TEXT,
     "email" TEXT,
     "roles" "Roles" NOT NULL,
-    "userRoleId" INTEGER NOT NULL,
     "projectsAssigned" TEXT[],
     "refreshToken" TEXT,
 
@@ -34,10 +33,9 @@ CREATE TABLE "Developer" (
     "userId" INTEGER NOT NULL,
     "fullName" TEXT NOT NULL,
     "username" TEXT NOT NULL,
-    "managerId" INTEGER NOT NULL,
-    "email" TEXT NOT NULL,
-    "refreshToken" TEXT NOT NULL,
-    "developerRoleId" INTEGER NOT NULL,
+    "managerId" INTEGER,
+    "email" TEXT,
+    "refreshToken" TEXT,
 
     CONSTRAINT "Developer_pkey" PRIMARY KEY ("id")
 );
@@ -98,7 +96,7 @@ ALTER TABLE "Manager" ADD CONSTRAINT "Manager_userId_fkey" FOREIGN KEY ("userId"
 ALTER TABLE "Developer" ADD CONSTRAINT "Developer_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Developer" ADD CONSTRAINT "Developer_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "Manager"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Developer" ADD CONSTRAINT "Developer_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "Manager"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Project" ADD CONSTRAINT "Project_managerId_fkey" FOREIGN KEY ("managerId") REFERENCES "Manager"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -1,4 +1,8 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { Response } from 'express';
@@ -11,10 +15,19 @@ export class AuthService {
 
   async signIn(username: string, pass: string, res: Response) {
     const user = await this.usersService.findOne(username);
+    if (!user) {
+      throw new NotFoundException();
+    }
     if (user?.password !== pass) {
       throw new UnauthorizedException();
     }
-    const payload = { sub: user.id, username: user.username };
+    const payload = {
+      UserInfo: {
+        username: user.username,
+        roles: user.roles,
+        userId: user.id,
+      },
+    };
 
     const accessToken = this.jwtService.sign(payload, {
       expiresIn: '1h', // Set your desired expiration time for access token
