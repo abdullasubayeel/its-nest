@@ -12,10 +12,10 @@ datasource db {
 
 model User {
   id               Int       @id @default(autoincrement())
-  username         String    @unique
+  username         String?
   password         String
   fullName         String?
-  email            String?
+  email            String    @unique
   roles            Roles
   refreshToken     String?
   managerId        Int?
