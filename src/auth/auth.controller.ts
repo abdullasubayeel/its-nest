@@ -10,7 +10,7 @@ import {
   Req,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { Response } from 'express';
+import { Response, Request } from 'express';
 
 @Controller('auth')
 export class AuthController {
@@ -22,6 +22,7 @@ export class AuthController {
     @Body('password') password: string,
     @Res({ passthrough: true }) response: Response,
   ) {
+    console.log('hit');
     return this.authService.signIn(email, password, response);
   }
 
@@ -34,5 +35,20 @@ export class AuthController {
   ) {
     console.log(request.body);
     return this.authService.register(email, password, response);
+  }
+
+  @Get('user')
+  async user(@Req() request: Request) {
+    return this.authService.getCurrentUser(request);
+  }
+
+  @Get('refresh')
+  async refresh(@Req() request: Request) {
+    return this.authService.refresh(request);
+  }
+
+  @Post('logout')
+  async logout(@Res({ passthrough: true }) response: Response) {
+    return this.authService.logOut(response);
   }
 }

@@ -6,6 +6,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { UserService } from 'src/user/user.service';
 import { Response } from 'express';
+import * as bcrypt from 'bcrypt';
+import { Request } from 'express';
 @Injectable()
 export class AuthService {
   constructor(
@@ -15,13 +17,16 @@ export class AuthService {
 
   async signIn(email: string, pass: string, res: Response) {
     try {
+      console.log('APi HIT');
+
       const user = await this.usersService.findOne(email);
+      console.log('Registered User:', user);
       if (!user) {
         res.status(400).json({
           message: "User with given Email doesn't exists",
           status: 400,
         });
-      } else if (user?.password != pass) {
+      } else if (!(await bcrypt.compare(pass, user?.password))) {
         res.status(400).json({
           message: 'Invalid Credentials',
           status: 400,
@@ -52,7 +57,7 @@ export class AuthService {
       }
     } catch (err: any) {
       console.log('Error:', err);
-      res.json({
+      res.status(500).json({
         message: 'Something went wrong',
         status: 500,
       });
@@ -83,6 +88,76 @@ export class AuthService {
       }
     } catch (err: any) {
       console.log('Error:', err);
+      res.status(500).json({
+        message: 'Something went wrong',
+        status: 500,
+      });
+    }
+  }
+
+  async refresh(req: Request) {
+    try {
+      const token = req.cookies['jwt'];
+      const data = await this.jwtService.verifyAsync(token);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+      console.log('data', data);
+      const currentUser = await this.usersService.findOne(
+        data?.UserInfo.email ?? '',
+      );
+
+      const payload = {
+        UserInfo: {
+          email: currentUser.email,
+          roles: currentUser.roles,
+          userId: currentUser.id,
+        },
+      };
+
+      const accessToken = this.jwtService.sign(payload, {
+        expiresIn: '1h', // Set your desired expiration time for access token
+      });
+
+      const { password, ...result } = currentUser;
+      return { accessToken, userId: currentUser.id, ...result };
+    } catch (err: any) {
+      console.log(err);
+      throw new UnauthorizedException();
+    }
+  }
+
+  async getCurrentUser(req: Request) {
+    try {
+      const token = req.cookies['jwt'];
+      const data = await this.jwtService.verifyAsync(token);
+
+      if (!data) {
+        throw new UnauthorizedException();
+      }
+      console.log('data', data);
+      const currentUser = await this.usersService.findOne(
+        data?.UserInfo.email ?? '',
+      );
+
+      const { password, ...result } = currentUser;
+      return result;
+    } catch (err: any) {
+      console.log(err);
+      throw new UnauthorizedException();
+    }
+  }
+
+  async logOut(res: Response) {
+    try {
+      res.clearCookie('jwt');
+      res.status(200).json({
+        message: 'Logged Successfully!',
+        status: 200,
+      });
+    } catch (err: any) {
+      console.log('Error', err);
       res.status(500).json({
         message: 'Something went wrong',
         status: 500,

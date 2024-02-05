@@ -23,6 +23,10 @@ export class UserController {
   findAll() {
     return this.userService.findAll();
   }
+  @Get(':managerId')
+  getDevelopers(@Param('managerId') managerId: number) {
+    return this.userService.getDevelopers(managerId);
+  }
 
   @Get(':id')
   findOne(@Param('id') username: string) {
