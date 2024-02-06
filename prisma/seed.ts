@@ -9,7 +9,7 @@ async function main() {
   // create two dummy articles
   const post1 = await prisma.project.create({
     data: {
-      id: 1,
+      id: '1',
       title: 'Carbon Karma',
       description: '',
     },

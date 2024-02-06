@@ -7,15 +7,21 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ProjectService } from './project.service';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { Prisma } from '@prisma/client';
 import { AuthGuard } from '@nestjs/passport';
-@Controller('project')
+import { Request } from 'express';
+import { AuthService } from 'src/auth/auth.service';
+@Controller('projects')
 export class ProjectController {
-  constructor(private readonly projectService: ProjectService) {}
+  constructor(
+    private readonly projectService: ProjectService,
+    // private authService: AuthService,
+  ) {}
 
   // @UseGuards(AuthGuard('jwt'))
   @Post()
@@ -23,10 +29,18 @@ export class ProjectController {
     return this.projectService.create(createProjectDto);
   }
 
-  @Get()
-  findAll(@Param('managerId') managerId: number) {
-    return this.projectService.findAll(managerId);
-  }
+  // @Get()
+  // async findProjects(@Req() req: Request) {
+  //   const userData = await this.authService.getCurrentUser(req);
+
+  //   if (userData.roles === 'MANAGER') {
+  //     return this.projectService.findManagerProjects(userData.id);
+  //   } else {
+  //     return this.projectService.findDeveloperProjects(
+  //       userData.projectsAssigned,
+  //     );
+  //   }
+  // }
 
   @Get(':id')
   findOne(@Param('id') id: string) {
@@ -40,6 +54,6 @@ export class ProjectController {
 
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.projectService.remove(+id);
+    return this.projectService.remove(id);
   }
 }

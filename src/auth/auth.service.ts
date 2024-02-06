@@ -8,6 +8,9 @@ import { UserService } from 'src/user/user.service';
 import { Response } from 'express';
 import * as bcrypt from 'bcrypt';
 import { Request } from 'express';
+
+import { jwtDecode } from 'jwt-decode';
+import { v4 as uuidv4 } from 'uuid';
 @Injectable()
 export class AuthService {
   constructor(
@@ -17,8 +20,6 @@ export class AuthService {
 
   async signIn(email: string, pass: string, res: Response) {
     try {
-      console.log('APi HIT');
-
       const user = await this.usersService.findOne(email);
       console.log('Registered User:', user);
       if (!user) {
@@ -26,7 +27,7 @@ export class AuthService {
           message: "User with given Email doesn't exists",
           status: 400,
         });
-      } else if (!(await bcrypt.compare(pass, user?.password))) {
+      } else if (pass !== user?.password) {
         res.status(400).json({
           message: 'Invalid Credentials',
           status: 400,
@@ -75,6 +76,7 @@ export class AuthService {
         });
       } else {
         await this.usersService.create({
+          id: uuidv4(),
           email,
           password: pass,
           roles: 'MANAGER',
@@ -149,6 +151,22 @@ export class AuthService {
     }
   }
 
+  async getUserByAccessToken(req: Request) {
+    try {
+      const token = req.headers.authorization;
+      const decoded = jwtDecode(token);
+
+      //@ts-ignore
+      const currentUser = await this.usersService.findOne(decoded.email ?? '');
+
+      const { password, ...result } = currentUser;
+      return result;
+    } catch (err: any) {
+      console.log(err);
+      throw new UnauthorizedException();
+    }
+  }
+
   async logOut(res: Response) {
     try {
       res.clearCookie('jwt');
@@ -162,6 +180,22 @@ export class AuthService {
         message: 'Something went wrong',
         status: 500,
       });
+    }
+  }
+
+  async getEmailByAccessToken(req: Request) {
+    try {
+      const token = req.headers.authorization;
+      const decoded = jwtDecode(token);
+
+      //@ts-ignore
+      if (decoded.email) {
+        //@ts-ignore
+        return decoded.email;
+      }
+    } catch (err: any) {
+      console.log(err);
+      throw new UnauthorizedException();
     }
   }
 }

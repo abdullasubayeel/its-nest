@@ -12,14 +12,14 @@ datasource db {
 }
 
 model User {
-  id               Int       @id @default(autoincrement())
+  id               String    @id
   username         String?
-  password         String
+  password         String?
   fullName         String?
   email            String    @unique
   roles            Roles
   refreshToken     String?
-  managerId        Int?
+  managerId        String?
   projectsAssigned String[]
   projects         Project[]
   reporterDev      Ticket[]  @relation("assigneeDeveloper")
@@ -35,27 +35,27 @@ enum Roles {
 }
 
 model Project {
-  id          Int      @id @default(autoincrement())
+  id          String   @id
   title       String
   description String
   tickets     Ticket[]
   User        User?    @relation(fields: [managerId], references: [id])
-  managerId   Int?
+  managerId   String?
 }
 
 model Ticket {
-  id                 Int     @id @default(autoincrement())
+  id                 String  @id
   title              String
   priority           String
   project            Project @relation(fields: [projectId], references: [id])
-  projectId          Int
+  projectId          String
   description        String
   status             String
   assigneeDeveloper  User    @relation("assigneeDeveloper", fields: [assignee], references: [id])
-  assignee           Int
+  assignee           String
   reportingDeveloper User    @relation("reportingDeveloper", fields: [reporter], references: [id])
-  reporter           Int
+  reporter           String
   issueType          String
   User               User?   @relation(fields: [userId], references: [id])
-  userId             Int?
+  userId             String?
 }
