@@ -24,9 +24,7 @@ model User {
   projects         UserProjects[]
   reporterDev      Ticket[]       @relation("assigneeDeveloper")
   assignedDev      Ticket[]       @relation("reportingDeveloper")
-
-  Ticket  Ticket[]
-  Project Project[]
+  Project          Project[]
 }
 
 enum Roles {
@@ -69,6 +67,4 @@ model Ticket {
   reportingDeveloper User    @relation("reportingDeveloper", fields: [reporter], references: [id])
   reporter           String
   issueType          String
-  User               User?   @relation(fields: [userId], references: [id])
-  userId             String?
 }

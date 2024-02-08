@@ -1,4 +1,8 @@
-export class CreateTicketDto {
+export class UpdateTicketStatusDto {
+  status: string;
+}
+
+export class UpdateTicketDetailsDto {
   title: string;
   issueType: string;
   description: string;
@@ -6,6 +10,5 @@ export class CreateTicketDto {
   assignee: string;
   status: string;
   reporter: string;
-  projectId: string;
   sprint: string;
 }

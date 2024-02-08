@@ -1,15 +1,47 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  Put,
+} from '@nestjs/common';
 import { TicketService } from './ticket.service';
-import { CreateTicketDto } from './dto/create-ticket.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
+import { Prisma } from '@prisma/client';
+import { CreateTicketDto } from './dto/create-ticket.dto';
+import {
+  UpdateTicketDetailsDto,
+  UpdateTicketStatusDto,
+} from './dto/update-ticket-status.dto';
 
 @Controller('ticket')
 export class TicketController {
   constructor(private readonly ticketService: TicketService) {}
 
   @Post()
-  create(@Body() createTicketDto: CreateTicketDto) {
-    return this.ticketService.create(createTicketDto);
+  async create(@Body() createTicketDto: CreateTicketDto) {
+    console.log('app', createTicketDto);
+    const newTicket = await this.ticketService.create(createTicketDto);
+    return newTicket;
+  }
+
+  @Put('updatestatus/:id')
+  async updateTicketStatus(
+    @Body() updateTicketStatusDto: UpdateTicketStatusDto,
+    @Param('id') id: string,
+  ) {
+    return this.ticketService.updateTicketStatus(updateTicketStatusDto, id);
+  }
+
+  @Patch(':id')
+  async updateTicketDetails(
+    @Body() updateTicketStatusDto: UpdateTicketDetailsDto,
+    @Param('id') id: string,
+  ) {
+    return this.ticketService.updateTicketDetails(updateTicketStatusDto, id);
   }
 
   @Get()
@@ -22,13 +54,8 @@ export class TicketController {
     return this.ticketService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateTicketDto: UpdateTicketDto) {
-    return this.ticketService.update(+id, updateTicketDto);
-  }
-
   @Delete(':id')
   remove(@Param('id') id: string) {
-    return this.ticketService.remove(+id);
+    return this.ticketService.remove(id);
   }
 }

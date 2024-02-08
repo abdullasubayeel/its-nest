@@ -49,16 +49,16 @@ export class AuthService {
         };
 
         const accessToken = this.jwtService.sign(payload, {
-          expiresIn: '1h', // Set your desired expiration time for access token
+          expiresIn: '1h',
         });
 
         const refreshToken = this.jwtService.sign(payload, {
-          expiresIn: '7d', // Set your desired expiration time for refresh token
+          expiresIn: '3d',
         });
 
         res.cookie('jwt', refreshToken);
         res.status(200).json({
-          access_token: accessToken,
+          accessToken: accessToken,
           status: 200,
           message: 'Login Successful!',
         });
