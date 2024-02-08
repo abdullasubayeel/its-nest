@@ -13,13 +13,13 @@ import {
 import { UserService } from './user.service';
 import { Prisma } from '@prisma/client';
 import { Response, Request } from 'express';
-import { AuthService } from 'src/auth/auth.service';
-
+import { DatabaseService } from 'src/database/database.service';
+import * as bcrypt from 'bcrypt';
 @Controller('user')
 export class UserController {
   constructor(
     private readonly userService: UserService,
-    // private authService: AuthService,
+    private databaseService: DatabaseService,
   ) {}
 
   @Post()
@@ -43,32 +43,32 @@ export class UserController {
     return this.userService.getDevelopers(managerId);
   }
 
-  // @Get()
-  // findAll() {
-  //   return this.userService.findAll();
-  // }
+  @Get()
+  findAll() {
+    return this.userService.findAll();
+  }
 
-  // @Post('developer')
-  // createDeveloper(
-  //   @Body() createUserDto: Prisma.UserCreateInput,
-  //   @Res() res: Response,
-  //   @Req() req: Request,
-  // ) {
-  //   return this.userService.createDeveloper(createUserDto, res, req);
-  // }
+  @Post('developer')
+  createDeveloper(
+    @Body() createUserDto: Prisma.UserCreateInput,
+    @Res() res: Response,
+    @Req() req: Request,
+  ) {
+    return this.userService.createDeveloper(createUserDto, res, req);
+  }
 
-  // @Post('set-Password')
-  // async setDeveloperPassword(
-  //   @Body() body: { password: string },
-  //   @Res() res: Response,
-  //   @Req() req: Request,
-  // ) {
-  //   const user = await this.authService.getUserByAccessToken(req);
-  //   console.log('current user', user);
-  //   console.log('req headr', req.headers);
-  //   console.log('pwd ', body);
-  //   return this.userService.setPassword(user.email, body.password, res);
-  // }
+  @Post('set-Password')
+  async setDeveloperPassword(
+    @Body() body: { password: string },
+    @Res() res: Response,
+    @Req() req: Request,
+  ) {
+    const user = await this.userService.getUserByAccessToken(req);
+    const saltOrRounds = 10;
+
+    const hashedPassword = await bcrypt.hash(body.password, saltOrRounds);
+    return this.userService.setPassword(user.email, hashedPassword, res);
+  }
 
   @Get(':id')
   findOne(@Param('id') username: string) {
@@ -76,11 +76,38 @@ export class UserController {
   }
 
   @Patch(':id')
-  update(
+  async update(
     @Param('id') id: string,
-    @Body() updateUserDto: Prisma.UserUpdateInput,
+    @Body() data: { fullName: string; projects: string[] },
   ) {
-    return this.userService.update(id, updateUserDto);
+    const updateDeveloperTransaction = await this.databaseService.$transaction(
+      async (prisma) => {
+        // Create project
+        const updatedDev = await prisma.user.update({
+          where: {
+            id,
+          },
+          data: {
+            fullName: data.fullName,
+          },
+        });
+
+        // Create junction records for each developer
+        await Promise.all(
+          data.projects.map(async (projectId) => {
+            await prisma.userProjects.create({
+              data: {
+                userId: id,
+                projectId: projectId,
+              },
+            });
+          }),
+        );
+
+        return updatedDev;
+      },
+    );
+    return updateDeveloperTransaction;
   }
 
   @Delete(':id')

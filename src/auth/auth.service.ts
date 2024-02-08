@@ -27,7 +27,14 @@ export class AuthService {
           message: "User with given Email doesn't exists",
           status: 400,
         });
-      } else if (pass !== user?.password) {
+
+        return;
+      }
+      const match = await bcrypt.compare(pass, user?.password);
+      console.log(match);
+      console.log(pass);
+      console.log(user?.password);
+      if (!match) {
         res.status(400).json({
           message: 'Invalid Credentials',
           status: 400,
@@ -124,43 +131,6 @@ export class AuthService {
 
       const { password, ...result } = currentUser;
       return { accessToken, userId: currentUser.id, ...result };
-    } catch (err: any) {
-      console.log(err);
-      throw new UnauthorizedException();
-    }
-  }
-
-  async getCurrentUser(req: Request) {
-    try {
-      const token = req.cookies['jwt'];
-      const data = await this.jwtService.verifyAsync(token);
-
-      if (!data) {
-        throw new UnauthorizedException();
-      }
-      console.log('data', data);
-      const currentUser = await this.usersService.findOne(
-        data?.UserInfo.email ?? '',
-      );
-
-      const { password, ...result } = currentUser;
-      return result;
-    } catch (err: any) {
-      console.log(err);
-      throw new UnauthorizedException();
-    }
-  }
-
-  async getUserByAccessToken(req: Request) {
-    try {
-      const token = req.headers.authorization;
-      const decoded = jwtDecode(token);
-
-      //@ts-ignore
-      const currentUser = await this.usersService.findOne(decoded.email ?? '');
-
-      const { password, ...result } = currentUser;
-      return result;
     } catch (err: any) {
       console.log(err);
       throw new UnauthorizedException();

@@ -11,10 +11,14 @@ import {
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { Response, Request } from 'express';
+import { UserService } from 'src/user/user.service';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly userService: UserService,
+  ) {}
 
   @Post('/login')
   async login(
@@ -39,7 +43,7 @@ export class AuthController {
 
   @Get('user')
   async user(@Req() request: Request) {
-    return this.authService.getCurrentUser(request);
+    return this.userService.getUserByAccessToken(request);
   }
 
   @Get('refresh')

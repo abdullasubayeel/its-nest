@@ -12,20 +12,21 @@ datasource db {
 }
 
 model User {
-  id               String    @id
+  id               String         @id
   username         String?
   password         String?
   fullName         String?
-  email            String    @unique
+  email            String         @unique
   roles            Roles
   refreshToken     String?
   managerId        String?
   projectsAssigned String[]
-  projects         Project[]
-  reporterDev      Ticket[]  @relation("assigneeDeveloper")
-  assignedDev      Ticket[]  @relation("reportingDeveloper")
+  projects         UserProjects[]
+  reporterDev      Ticket[]       @relation("assigneeDeveloper")
+  assignedDev      Ticket[]       @relation("reportingDeveloper")
 
-  Ticket Ticket[]
+  Ticket  Ticket[]
+  Project Project[]
 }
 
 enum Roles {
@@ -35,12 +36,24 @@ enum Roles {
 }
 
 model Project {
-  id          String   @id
+  id          String         @id
   title       String
   description String
   tickets     Ticket[]
-  User        User?    @relation(fields: [managerId], references: [id])
-  managerId   String?
+  developers  UserProjects[]
+  manager     User           @relation(fields: [managerId], references: [id])
+  managerId   String
+}
+
+model UserProjects {
+  id        String @id @default(uuid())
+  userId    String
+  projectId String
+
+  User    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  Project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, projectId])
 }
 
 model Ticket {
