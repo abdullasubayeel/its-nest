@@ -25,7 +25,7 @@ RUN npm install
 COPY . .
 
 # Copy the .env and .env.development files
-COPY .env .env.development ./
+COPY .env .env.development 
 
 # This line sets an environment variable that tells the Prisma ORM to ignore missing engine checksums. This is useful when deploying to certain 
 # platforms like Heroku.

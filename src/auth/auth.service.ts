@@ -21,19 +21,15 @@ export class AuthService {
   async signIn(email: string, pass: string, res: Response) {
     try {
       const user = await this.usersService.findOne(email);
-      console.log('Registered User:', user);
       if (!user) {
         res.status(400).json({
           message: "User with given Email doesn't exists",
           status: 400,
         });
-
         return;
       }
       const match = await bcrypt.compare(pass, user?.password);
-      console.log(match);
-      console.log(pass);
-      console.log(user?.password);
+
       if (!match) {
         res.status(400).json({
           message: 'Invalid Credentials',

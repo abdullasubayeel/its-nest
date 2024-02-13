@@ -4,6 +4,7 @@ version: '3.3'
 services:
   postgres:
     image: postgres:13.5
+    container_name: its-nest-postgres-1
     restart: always
     environment:
       - POSTGRES_USER=myuser
